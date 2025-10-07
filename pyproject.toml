@@ -1,5 +1,5 @@
 [project]
-name = "lambda-backlog-bot"
+name = "backlog-ai-bot-lambda"
 version = "0.1.0"
 description = "Backlog AI bot on AWS Lambda + Bedrock Claude (minimal, RAG-less)"
 readme = "README.md"
