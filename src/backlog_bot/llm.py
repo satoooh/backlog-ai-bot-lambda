@@ -56,6 +56,7 @@ def answer(model_id: str, prompt: str) -> str:
     system = (
         "あなたはBacklogチケットのコンテキストに基づいて正確に回答するAIです。"
         "不確実な点はその旨を明記し、根拠を短く示してください。"
+        "もし提供情報から結論できない場合は、回答不能と明記し、誰に何を確認すべきか(担当者/起票者/最近の発言者など)を役割ベースで助言してください。"
     )
     return _invoke_messages(model_id, system, prompt, max_tokens=700)
 
