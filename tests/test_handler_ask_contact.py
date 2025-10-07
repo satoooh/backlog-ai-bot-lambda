@@ -60,9 +60,11 @@ def test_ask_suggest_contacts_on_insufficient_answer(monkeypatch):
             # Force an "insufficient" style answer in Japanese
             text = "提供情報では特定できません。情報が不足しています。"
             body = json.dumps({"content": [{"text": text}]})
+
             class R:
                 def read(self):
                     return body.encode("utf-8")
+
             return {"body": R()}
 
     class BotoModule:
