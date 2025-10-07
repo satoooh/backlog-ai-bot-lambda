@@ -39,10 +39,11 @@ uv run pytest
 bash scripts/build_zip.sh
 ```
 
-2) Lambda 関数作成（ハンドラ: `backlog_bot.handler.lambda_handler`）
+2) Lambda 関数作成（ハンドラ指定）
 
 - ランタイム: Python 3.13（本リポジトリは 3.11–3.13 で動作）
 - メモリ: 256MB 以上推奨、タイムアウト: 15秒程度
+- ハンドラ: `backlog_bot.handler.lambda_handler`
 - 環境変数（必須/条件付き/任意）
 
   必須
