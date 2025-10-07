@@ -90,6 +90,32 @@ bash scripts/build_zip.sh
 - Bedrock Messages API は `anthropic_version=bedrock-2023-05-31` を使用。
 - LLMは最大リトライ後に失敗した場合、エラーメッセージをコメント投稿（管理者への連絡を促す）。フォールバック要約は行いません。
 
+### CloudWatch ログ/メトリクス
+- 本実装は処理フローを JSON ログで出力します（CloudWatch Logs で検索しやすい）。主なイベント: `auth_failed`, `ignored_*`, `duplicate_ignored`, `backlog_fetch_ok/error`, `context_added_issue/wiki`, `llm_ok/retry/failed`, `backlog_post_error`, `ok` など。
+- `ok` ログには `issueKey`, `commentId`, `cmd`, `ms_total` が含まれ、遅延監視が可能です。
+- さらにメトリクス化したい場合は CloudWatch Logs Insights で集計、あるいは EMF への拡張をご相談ください。
+
+### Bedrock の権限付与（IAM）
+1. 対象リージョンで Bedrock の「Model access」で利用モデルのアクセスを有効化（コンソール → Bedrock → Model access）。
+2. Lambda 実行ロールに `bedrock:InvokeModel`（必要に応じて `bedrock:InvokeModelWithResponseStream`）を付与。
+
+最小ポリシー例（Claude 3 Haiku を us-east-1 で使用する場合）:
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel"
+      ],
+      "Resource": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+    }
+  ]
+}
+```
+- 別モデル/別リージョンを使う場合は `Resource` の ARN を差し替えてください（`foundation-model/<model-id>`）。
+
 ### メンション不要の試験運用（オプション）
 - 目的: 個人アカウントでまず試せるように。理想形はbot用のアカウントを作成しておくこと
 - 設定: `REQUIRE_MENTION=false` とし、`ALLOWED_TRIGGER_USER_IDS` に自分のBacklogユーザーIDを設定。
