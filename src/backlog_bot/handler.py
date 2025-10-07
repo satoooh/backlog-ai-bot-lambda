@@ -107,13 +107,51 @@ def _load_secrets(_: Settings) -> dict[str, str]:
 
 
 def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Backlog project Webhook payload: { type, content: { comment, issue, ... } }"""
+    """Extract comment/issue from Backlog Webhook payload.
+
+    Primary supported shape (official):
+      { type, content: { comment: {...}, issue: {...}, ... } }
+
+    Compatibility: if content doesn't include objects "comment" and "issue",
+    try to interpret a "labelized" flat content where keys are human-readable
+    (e.g., "Comment", "Key ID", "Summary", ...). In that case, synthesize
+    minimal comment/issue dicts so downstream logic can proceed.
+    """
     content = payload.get("content") or {}
     if not isinstance(content, dict):
         return {}, {}
-    comment = content.get("comment") or {}
-    issue = content.get("issue") or {}
-    return comment, issue
+    # Official shape first
+    if isinstance(content.get("comment"), dict) and isinstance(content.get("issue"), dict):
+        return content.get("comment") or {}, content.get("issue") or {}
+
+    # Compatibility: labelized shape
+    def _norm(s: str) -> str:
+        return "".join(ch for ch in s.lower() if ch.isalnum())
+
+    norm_map: dict[str, str] = {}
+    for _k in content.keys():
+        nk = _norm(_k) if isinstance(_k, str) else str(_k)
+        norm_map[nk] = _k
+
+    # comment text candidates
+    comment_text = None
+    for key_norm in ("comment", "commentcontent", "comments", "content"):
+        k = norm_map.get(key_norm)
+        if k and isinstance(content.get(k), str):
+            comment_text = content.get(k)
+            break
+
+    # issue identifier candidates
+    issue_key_val = None
+    for key_norm in ("issuekey", "keyid", "key", "id"):
+        k = norm_map.get(key_norm)
+        if k and content.get(k) is not None:
+            issue_key_val = str(content.get(k))
+            break
+
+    comment_obj: dict[str, Any] = {"content": comment_text} if comment_text else {}
+    issue_obj: dict[str, Any] = {"issueKey": issue_key_val} if issue_key_val else {}
+    return comment_obj, issue_obj
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
