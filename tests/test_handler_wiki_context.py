@@ -75,12 +75,16 @@ def test_handler_uses_wiki_context(monkeypatch):
     monkeypatch.setitem(h.__dict__, "BacklogClient", lambda *_a, **_k: fb)
 
     body = {
-        "comment": {
-            "id": 2000,
-            "content": "@bot /summary\ncontext: https://space.backlog.com/wiki/12345",
-            "notifications": [{"user": {"id": 123}}],
+        "type": 3,
+        "content": {
+            "comment": {
+                "id": 2000,
+                "content": "@bot /summary\ncontext: https://space.backlog.com/wiki/12345",
+                "notifications": [{"user": {"id": 123}}],
+                "createdUser": {"id": 123},
+            },
+            "issue": {"issueKey": "PROJ-3", "id": 3},
         },
-        "issue": {"issueKey": "PROJ-3", "id": 3},
     }
     event = {
         "headers": {"X-Webhook-Secret": "secret"},

@@ -80,12 +80,16 @@ def test_ask_suggest_contacts_on_insufficient_answer(monkeypatch):
     monkeypatch.setitem(h.__dict__, "BacklogClient", lambda *_a, **_k: fb)
 
     body = {
-        "comment": {
-            "id": 3000,
-            "content": "@bot /ask だれが対応すべき？",
-            "notifications": [{"user": {"id": 999}}],
+        "type": 3,
+        "content": {
+            "comment": {
+                "id": 3000,
+                "content": "@bot /ask だれが対応すべき？",
+                "notifications": [{"user": {"id": 999}}],
+                "createdUser": {"id": 999},
+            },
+            "issue": {"issueKey": "PROJ-4", "id": 4},
         },
-        "issue": {"issueKey": "PROJ-4", "id": 4},
     }
     event = {
         "headers": {"X-Webhook-Secret": "secret"},

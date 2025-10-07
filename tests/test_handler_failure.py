@@ -65,12 +65,16 @@ def test_llm_failure_posts_error_comment(monkeypatch):
     monkeypatch.setitem(h.__dict__, "BacklogClient", lambda *_a, **_k: fb)
 
     body = {
-        "comment": {
-            "id": 1000,
-            "content": "@bot /summary",
-            "notifications": [{"user": {"id": 123}}],
+        "type": 3,
+        "content": {
+            "comment": {
+                "id": 1000,
+                "content": "@bot /summary",
+                "notifications": [{"user": {"id": 123}}],
+                "createdUser": {"id": 123},
+            },
+            "issue": {"issueKey": "PROJ-2", "id": 2},
         },
-        "issue": {"issueKey": "PROJ-2", "id": 2},
     }
     event = {
         "headers": {"X-Webhook-Secret": "secret"},

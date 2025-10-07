@@ -107,8 +107,12 @@ def _load_secrets(_: Settings) -> dict[str, str]:
 
 
 def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-    comment = payload.get("comment") or {}
-    issue = payload.get("issue") or {}
+    """Backlog project Webhook payload: { type, content: { comment, issue, ... } }"""
+    content = payload.get("content") or {}
+    if not isinstance(content, dict):
+        return {}, {}
+    comment = content.get("comment") or {}
+    issue = content.get("issue") or {}
     return comment, issue
 
 
@@ -133,7 +137,15 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     payload = _get_body(event)
     comment, issue = _extract_comment_and_issue(payload)
     if not comment or not issue:
-        _log("ignored_no_comment_or_issue", rid=_rid(context))
+        _log(
+            "ignored_no_comment_or_issue",
+            rid=_rid(context),
+            has_content=bool((payload or {}).get("content")),
+            content_keys=list(((payload or {}).get("content") or {}).keys())
+            if isinstance((payload or {}).get("content"), dict)
+            else None,
+            type=(payload or {}).get("type"),
+        )
         return _response(200, {"result": "ignored"})
 
     # 3) Mention + command detection
