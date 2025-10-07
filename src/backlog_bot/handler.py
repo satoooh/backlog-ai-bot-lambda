@@ -266,7 +266,70 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
     title = issue_obj.get("summary") or issue_obj.get("title") or ""
     description = issue_obj.get("description") or ""
-    latest_texts = [str((c.get("content") or "").strip()) for c in recent if c.get("content")]
+
+    def _user_name(u: dict[str, Any] | None) -> str:
+        return (u or {}).get("name") or (u or {}).get("userId") or ""
+
+    # Build recent comments with author and timestamp
+    latest_lines: list[str] = []
+    for c in recent[: settings.recent_comment_count]:
+        content_txt = (c.get("content") or "").strip()
+        if not content_txt:
+            continue
+        created = c.get("created") or ""
+        author = _user_name(c.get("createdUser") or {})
+        latest_lines.append(f"[{created}] {author}: {content_txt}")
+
+    # Build major issue fields (including custom fields)
+    def _names(items: list[dict[str, Any]] | None) -> str:
+        if not items:
+            return ""
+        vals: list[str] = []
+        for it in items:
+            nm = (it or {}).get("name") or (it or {}).get("value")
+            if nm:
+                vals.append(str(nm))
+        return ", ".join(vals)
+
+    fields_lines: list[str] = []
+    fields_lines.append(f"キー: {issue_key}")
+    for label, val in [
+        ("状態", (issue_obj.get("status") or {}).get("name")),
+        ("優先度", (issue_obj.get("priority") or {}).get("name")),
+        ("種別", (issue_obj.get("issueType") or {}).get("name")),
+        ("解決", (issue_obj.get("resolution") or {}).get("name")),
+        ("担当者", _user_name(issue_obj.get("assignee") or {})),
+        ("開始日", issue_obj.get("startDate")),
+        ("期限", issue_obj.get("dueDate")),
+        ("予定時間", issue_obj.get("estimatedHours")),
+        ("実績時間", issue_obj.get("actualHours")),
+        ("親課題", issue_obj.get("parentIssueId")),
+        ("カテゴリー", _names(issue_obj.get("category"))),
+        ("バージョン", _names(issue_obj.get("versions"))),
+        ("マイルストーン", _names(issue_obj.get("milestone"))),
+    ]:
+        if val not in (None, "", []):
+            fields_lines.append(f"{label}: {val}")
+
+    # Custom fields
+    cfs = issue_obj.get("customFields") or []
+    if isinstance(cfs, list) and cfs:
+        for cf in cfs:
+            name = (cf or {}).get("name") or "CF"
+            value = (cf or {}).get("value")
+            if value is None:
+                # try common shapes
+                value = (
+                    (cf or {}).get("otherValue")
+                    or (cf or {}).get("date")
+                    or (cf or {}).get("dateStr")
+                )
+            if isinstance(value, list):
+                value = ", ".join(str((v or {}).get("name") or v) for v in value)
+            elif isinstance(value, dict):
+                value = (value or {}).get("name") or (value or {}).get("value") or str(value)
+            if value not in (None, ""):
+                fields_lines.append(f"{name}: {value}")
 
     # 7) Optional link context
     used_context_urls: list[str] = []
@@ -319,7 +382,12 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         p = (
             f"チケットの題名と説明、直近コメントからPM観点の要約を作ってください。\n"
             f"題名: {title}\n説明: {description[:1500]}\n"
-            f"直近コメント(新しい順に最大10):\n- " + "\n- ".join(latest_texts[:10])
+            + ("\n主要フィールド:\n- " + "\n- ".join(fields_lines) if fields_lines else "")
+            + (
+                "\n直近コメント(新しい順):\n- " + "\n- ".join(latest_lines[:50])
+                if latest_lines
+                else ""
+            )
         )
         if context_texts:
             p += "\n\n追加コンテキスト:\n" + "\n".join(context_texts[:2])
@@ -329,7 +397,12 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         p = (
             f"以下のチケット情報に基づいて質問に回答してください。\n質問: {q}\n\n"
             f"題名: {title}\n説明: {description[:1500]}\n"
-            f"直近コメント(新しい順に最大10):\n- " + "\n- ".join(latest_texts[:10])
+            + ("\n主要フィールド:\n- " + "\n- ".join(fields_lines) if fields_lines else "")
+            + (
+                "\n直近コメント(新しい順):\n- " + "\n- ".join(latest_lines[:50])
+                if latest_lines
+                else ""
+            )
         )
         if context_texts:
             p += "\n\n追加コンテキスト:\n" + "\n".join(context_texts[:2])
@@ -340,7 +413,12 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             "以下の本文から、期限・優先度・状態・担当の妥当性をレビューし、"
             "フォーマット『項目名: before → after （理由）』で更新提案を出してください。\n\n"
             f"題名: {title}\n説明: {description[:1500]}\n"
-            f"直近コメント(新しい順に最大10):\n- " + "\n- ".join(latest_texts[:10])
+            + ("\n主要フィールド:\n- " + "\n- ".join(fields_lines) if fields_lines else "")
+            + (
+                "\n直近コメント(新しい順):\n- " + "\n- ".join(latest_lines[:50])
+                if latest_lines
+                else ""
+            )
         )
 
     def _call_with_retry(kind: str) -> str:
