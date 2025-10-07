@@ -83,7 +83,7 @@ def test_handler_uses_wiki_context(monkeypatch):
                 "notifications": [{"user": {"id": 123}}],
                 "createdUser": {"id": 123},
             },
-            "issue": {"issueKey": "PROJ-3", "id": 3},
+            "key_id": "PROJ-3",
         },
     }
     event = {

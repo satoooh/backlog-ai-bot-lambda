@@ -73,7 +73,7 @@ def test_llm_failure_posts_error_comment(monkeypatch):
                 "notifications": [{"user": {"id": 123}}],
                 "createdUser": {"id": 123},
             },
-            "issue": {"issueKey": "PROJ-2", "id": 2},
+            "key_id": "PROJ-2",
         },
     }
     event = {

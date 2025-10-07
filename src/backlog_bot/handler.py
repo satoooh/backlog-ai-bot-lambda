@@ -107,49 +107,40 @@ def _load_secrets(_: Settings) -> dict[str, str]:
 
 
 def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Extract comment/issue from Backlog Webhook payload.
+    """Extract comment/issue in a simple, strict way.
 
-    Primary supported shape (official):
-      { type, content: { comment: {...}, issue: {...}, ... } }
-
-    Compatibility: if content doesn't include objects "comment" and "issue",
-    try to interpret a "labelized" flat content where keys are human-readable
-    (e.g., "Comment", "Key ID", "Summary", ...). In that case, synthesize
-    minimal comment/issue dicts so downstream logic can proceed.
+    Assumptions (per your payload):
+      - payload["content"]["comment"]["content"]: slash command text
+      - issue key/ID is found as "key_id" or "id" either in content or at top level
     """
     content = payload.get("content") or {}
     if not isinstance(content, dict):
         return {}, {}
-    # Official shape first
-    if isinstance(content.get("comment"), dict) and isinstance(content.get("issue"), dict):
-        return content.get("comment") or {}, content.get("issue") or {}
 
-    # Compatibility: labelized shape
-    def _norm(s: str) -> str:
-        return "".join(ch for ch in s.lower() if ch.isalnum())
-
-    norm_map: dict[str, str] = {}
-    for _k in content.keys():
-        nk = _norm(_k) if isinstance(_k, str) else str(_k)
-        norm_map[nk] = _k
-
-    # comment text candidates
+    # Comment object must be a dict with a "content" field holding text
+    comment_container = content.get("comment")
     comment_text = None
-    for key_norm in ("comment", "commentcontent", "comments", "content"):
-        k = norm_map.get(key_norm)
-        if k and isinstance(content.get(k), str):
-            comment_text = content.get(k)
-            break
+    comment_obj: dict[str, Any] = {}
+    if isinstance(comment_container, dict):
+        # Preserve original structure (notifications, createdUser, etc.)
+        comment_obj = comment_container
+        ct = comment_container.get("content")
+        if isinstance(ct, str):
+            comment_text = ct
 
-    # issue identifier candidates
+    # Issue key: prefer content["key_id"], fall back to top-level
     issue_key_val = None
-    for key_norm in ("issuekey", "keyid", "key", "id"):
-        k = norm_map.get(key_norm)
-        if k and content.get(k) is not None:
-            issue_key_val = str(content.get(k))
-            break
+    if content.get("key_id") is not None:
+        issue_key_val = str(content.get("key_id"))
+    elif content.get("id") is not None:
+        issue_key_val = str(content.get("id"))
+    elif payload.get("key_id") is not None:
+        issue_key_val = str(payload.get("key_id"))
+    elif payload.get("id") is not None:
+        issue_key_val = str(payload.get("id"))
 
-    comment_obj: dict[str, Any] = {"content": comment_text} if comment_text else {}
+    if not comment_obj and comment_text:
+        comment_obj = {"content": comment_text}
     issue_obj: dict[str, Any] = {"issueKey": issue_key_val} if issue_key_val else {}
     return comment_obj, issue_obj
 
