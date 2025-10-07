@@ -184,10 +184,10 @@ def lambda_handler(
         if sum(len(t) for t in context_texts) >= settings.context_total_max_bytes:
             break
         try:
-            issue_key, comment_ref = parse_backlog_issue_url(url, settings.backlog_base_url)
+            ctx_issue_key, comment_ref = parse_backlog_issue_url(url, settings.backlog_base_url)
             wiki_id = parse_backlog_wiki_url(url, settings.backlog_base_url)
-            if issue_key:
-                issue_obj2 = bl.get_issue(issue_key)
+            if ctx_issue_key:
+                issue_obj2 = bl.get_issue(ctx_issue_key)
                 comments2 = bl.list_comments(issue_key, count=settings.recent_comment_count)
                 txt = backlog_issue_to_text(
                     issue_obj2, comments2, settings.context_url_max_bytes, comment_ref

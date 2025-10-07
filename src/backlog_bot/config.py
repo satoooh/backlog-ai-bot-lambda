@@ -47,7 +47,7 @@ def load_settings() -> Settings:
     bot_user_id = int(_env("BOT_USER_ID", "0") or 0)
 
     allowed_hosts = tuple(
-        h.strip() for h in (_env("CONTEXT_ALLOWED_HOSTS", "").split(",")) if h.strip()
+        h.strip() for h in ((_env("CONTEXT_ALLOWED_HOSTS", "") or "").split(",")) if h.strip()
     )
 
     return Settings(
@@ -73,7 +73,9 @@ def load_settings() -> Settings:
         allowed_trigger_user_ids=tuple(
             int(x)
             for x in [
-                s.strip() for s in (_env("ALLOWED_TRIGGER_USER_IDS", "").split(",")) if s.strip()
+                s.strip()
+                for s in ((_env("ALLOWED_TRIGGER_USER_IDS", "") or "").split(","))
+                if s.strip()
             ]
         ),
     )

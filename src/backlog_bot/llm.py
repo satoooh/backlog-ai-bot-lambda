@@ -8,14 +8,15 @@ from __future__ import annotations
 
 import importlib
 import json
+from typing import Any
 
 
-def _boto3():
+def _boto3() -> Any:
     # Allow tests to monkeypatch module-level `boto3` symbol.
     return globals().get("boto3") or importlib.import_module("boto3")
 
 
-def _bedrock_client():
+def _bedrock_client() -> Any:
     return _boto3().client("bedrock-runtime")
 
 

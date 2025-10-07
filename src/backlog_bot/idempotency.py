@@ -7,9 +7,10 @@ Stores a tiny marker object per processed comment id.
 from __future__ import annotations
 
 import importlib
+from typing import Any
 
 
-def _boto3():
+def _boto3() -> Any:
     # Allow tests to monkeypatch module-level `boto3` symbol.
     return globals().get("boto3") or importlib.import_module("boto3")
 

@@ -15,6 +15,7 @@ dependencies = [
 dev = [
   "pytest>=8.2",
   "ruff>=0.6.8",
+  "mypy>=1.10.0",
 ]
 
 [tool.uv]
@@ -38,3 +39,18 @@ ignore = []
 quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.13"
+files = ["src/backlog_bot"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+pretty = true
+show_error_codes = true
+strict_optional = true
+no_implicit_optional = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+ignore_missing_imports = true
