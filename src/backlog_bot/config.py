@@ -56,7 +56,7 @@ def load_settings() -> Settings:
         webhook_shared_secret=_env("WEBHOOK_SHARED_SECRET"),
         secrets_llm_name=_env("LLM_SECRET_NAME"),
         idempotency_bucket=_env("IDEMPOTENCY_BUCKET"),
-        recent_comment_count=int(_env("RECENT_COMMENT_COUNT", "30") or 30),
+        recent_comment_count=int(_env("RECENT_COMMENT_COUNT", "50") or 50),
         context_url_max_bytes=int(_env("CONTEXT_URL_MAX_BYTES", "100000") or 100000),
         context_total_max_bytes=int(_env("CONTEXT_TOTAL_MAX_BYTES", "200000") or 200000),
         context_allowed_hosts=allowed_hosts,
