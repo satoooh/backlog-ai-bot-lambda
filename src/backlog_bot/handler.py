@@ -109,9 +109,10 @@ def _load_secrets(_: Settings) -> dict[str, str]:
 def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     """Extract comment/issue in a simple, strict way.
 
-    Assumptions (per your payload):
+    Assumptions:
       - payload["content"]["comment"]["content"]: slash command text
-      - issue key/ID is found as "key_id" or "id" either in content or at top level
+      - payload["project"]["projectKey"] exists
+      - issue key: content["issue"]["issueKey"] or f"{projectKey}-{content['key_id' or 'id']}"
     """
     content = payload.get("content") or {}
     if not isinstance(content, dict):
@@ -128,16 +129,19 @@ def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any],
         if isinstance(ct, str):
             comment_text = ct
 
-    # Issue key: prefer content["key_id"], fall back to top-level
+    # Issue key: prefer content.issue.issueKey, else compose with project.projectKey
     issue_key_val = None
-    if content.get("key_id") is not None:
-        issue_key_val = str(content.get("key_id"))
-    elif content.get("id") is not None:
-        issue_key_val = str(content.get("id"))
-    elif payload.get("key_id") is not None:
-        issue_key_val = str(payload.get("key_id"))
-    elif payload.get("id") is not None:
-        issue_key_val = str(payload.get("id"))
+    if isinstance(content.get("issue"), dict) and content["issue"].get("issueKey"):
+        issue_key_val = str(content["issue"]["issueKey"])
+    else:
+        proj = payload.get("project") or {}
+        pk = proj.get("projectKey") if isinstance(proj, dict) else None
+        kid = content.get("key_id")
+        cid = content.get("id")
+        if pk and kid is not None and str(kid).isdigit():
+            issue_key_val = f"{pk}-{kid}"
+        elif pk and cid is not None and str(cid).isdigit():
+            issue_key_val = f"{pk}-{cid}"
 
     if not comment_obj and comment_text:
         comment_obj = {"content": comment_text}

@@ -76,6 +76,7 @@ def test_handler_uses_wiki_context(monkeypatch):
 
     body = {
         "type": 3,
+        "project": {"projectKey": "PROJ"},
         "content": {
             "comment": {
                 "id": 2000,
@@ -83,7 +84,7 @@ def test_handler_uses_wiki_context(monkeypatch):
                 "notifications": [{"user": {"id": 123}}],
                 "createdUser": {"id": 123},
             },
-            "key_id": "PROJ-3",
+            "key_id": 3,
         },
     }
     event = {

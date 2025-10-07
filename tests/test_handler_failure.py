@@ -66,6 +66,7 @@ def test_llm_failure_posts_error_comment(monkeypatch):
 
     body = {
         "type": 3,
+        "project": {"projectKey": "PROJ"},
         "content": {
             "comment": {
                 "id": 1000,
@@ -73,7 +74,7 @@ def test_llm_failure_posts_error_comment(monkeypatch):
                 "notifications": [{"user": {"id": 123}}],
                 "createdUser": {"id": 123},
             },
-            "key_id": "PROJ-2",
+            "key_id": 2,
         },
     }
     event = {

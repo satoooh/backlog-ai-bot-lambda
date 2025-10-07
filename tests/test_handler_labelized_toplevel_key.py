@@ -65,12 +65,11 @@ def test_labelized_top_level_key_triggers(monkeypatch):
     # top-level Key ID, content has only comment/changes/diff
     payload = {
         "type": 3,
+        "project": {"projectKey": "PROJ"},
         "ID": 1001,
-        "Key ID": "PROJ-1001",
+        "Key ID": 1001,
         "content": {
-            "comment": "@bot /summary",
-            "changes": [],
-            "diff": "",
+            "comment": {"content": "@bot /summary"},
         },
     }
     event = {

@@ -79,6 +79,7 @@ def test_lambda_handler_happy_path(monkeypatch):
 
     body = {
         "type": 3,
+        "project": {"projectKey": "PROJ"},
         "content": {
             "comment": {
                 "id": 999,
@@ -86,7 +87,7 @@ def test_lambda_handler_happy_path(monkeypatch):
                 "notifications": [{"user": {"id": 123}}],
                 "createdUser": {"id": 123},
             },
-            "key_id": "PROJ-1",
+            "key_id": 1,
         },
     }
     event = {

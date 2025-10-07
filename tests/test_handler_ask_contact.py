@@ -81,6 +81,7 @@ def test_ask_suggest_contacts_on_insufficient_answer(monkeypatch):
 
     body = {
         "type": 3,
+        "project": {"projectKey": "PROJ"},
         "content": {
             "comment": {
                 "id": 3000,
@@ -88,7 +89,7 @@ def test_ask_suggest_contacts_on_insufficient_answer(monkeypatch):
                 "notifications": [{"user": {"id": 999}}],
                 "createdUser": {"id": 999},
             },
-            "key_id": "PROJ-4",
+            "key_id": 4,
         },
     }
     event = {
