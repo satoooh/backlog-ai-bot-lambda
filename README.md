@@ -65,6 +65,7 @@ bash scripts/build_zip.sh
   - `LLM_MAX_RETRIES`: 既定 2。
   - `REQUIRE_MENTION`: `true|false`（既定 `true`）。`false` でメンション不要の試験運用モード。
   - `ALLOWED_TRIGGER_USER_IDS`: メンション不要モード時の許可ユーザーID（CSV、例: `12345,67890`）。
+  - `LOG_LEVEL`: `INFO`（既定）/`DEBUG`/`WARNING` など。CloudWatchに詳細ログを出したい場合は `INFO` 以上に設定。
 
 - 権限（IAM）:
   - `s3:HeadObject`, `s3:PutObject`（`IDEMPOTENCY_BUCKET` を使う場合）

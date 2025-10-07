@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import time
 from typing import Any
 
@@ -25,7 +26,15 @@ from .idempotency import s3_record_if_new
 from .llm import answer, review_update, summarize
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+
+
+def _configure_logging() -> None:
+    level_name = (os.getenv("LOG_LEVEL") or "INFO").upper()
+    level = getattr(logging, level_name, logging.INFO)
+    logger.setLevel(level)
+    root = logging.getLogger()
+    if root.level and root.level > level:
+        root.setLevel(level)
 
 
 def _rid(context: Any) -> str | None:
@@ -103,9 +112,8 @@ def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any],
     return comment, issue
 
 
-def lambda_handler(
-    event: dict[str, Any], context: Any
-) -> dict[str, Any]:  # pragma: no cover - wrapper
+def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
+    _configure_logging()
     settings = load_settings()
     start_ts = time.time()
 
@@ -196,7 +204,7 @@ def lambda_handler(
             comments=len(recent),
             ms=int((time.time() - t0) * 1000),
         )
-    except Exception as e:  # pragma: no cover
+    except Exception as e:
         logger.exception("Backlog fetch failed")
         _log(
             "backlog_fetch_error",
