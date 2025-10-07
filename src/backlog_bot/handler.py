@@ -73,33 +73,11 @@ def _get_query_param(event: dict[str, Any], name: str) -> str | None:
     return None
 
 
-def _load_secrets(settings: Settings) -> dict[str, str]:
-    # Keep extremely simple: allow env BACKLOG_API_KEY override for local tests.
+def _load_secrets(_: Settings) -> dict[str, str]:
     import os
 
-    secrets: dict[str, str] = {}
     api_key = os.getenv("BACKLOG_API_KEY")
-    if api_key:
-        secrets["BACKLOG_API_KEY"] = api_key
-        return secrets
-
-    name = settings.secrets_backlog_name
-    if not name:
-        return secrets
-    try:
-        import boto3
-
-        sm = boto3.client("secretsmanager")
-        r = sm.get_secret_value(SecretId=name)
-        val = r.get("SecretString") or ""
-        # support either raw API key or JSON {"BACKLOG_API_KEY": "..."}
-        if val.startswith("{"):
-            secrets.update(json.loads(val))
-        else:
-            secrets["BACKLOG_API_KEY"] = val
-    except Exception as e:  # pragma: no cover
-        logger.warning("Secrets load failed: %s", e)
-    return secrets
+    return {"BACKLOG_API_KEY": api_key} if api_key else {}
 
 
 def _extract_comment_and_issue(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

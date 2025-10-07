@@ -58,7 +58,7 @@ def test_lambda_handler_happy_path(monkeypatch):
     monkeypatch.setenv("BACKLOG_SPACE", "space")
     monkeypatch.setenv("LLM_MODEL", "anthropic.claude-3-haiku-20240307-v1:0")
     monkeypatch.setenv("BOT_USER_ID", "123")
-    # Provide API key via env to avoid secretsmanager dependency in test
+    # Provide API key via env
     monkeypatch.setenv("BACKLOG_API_KEY", "x")
 
     fs3 = FakeS3()

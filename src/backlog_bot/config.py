@@ -21,7 +21,6 @@ class Settings:
     backlog_space: str | None
     bot_user_id: int
     webhook_shared_secret: str | None
-    secrets_backlog_name: str | None
     secrets_llm_name: str | None
     idempotency_bucket: str | None
     recent_comment_count: int
@@ -55,7 +54,6 @@ def load_settings() -> Settings:
         backlog_space=space,
         bot_user_id=bot_user_id,
         webhook_shared_secret=_env("WEBHOOK_SHARED_SECRET"),
-        secrets_backlog_name=_env("BACKLOG_BOT_SECRET_NAME"),
         secrets_llm_name=_env("LLM_SECRET_NAME"),
         idempotency_bucket=_env("IDEMPOTENCY_BUCKET"),
         recent_comment_count=int(_env("RECENT_COMMENT_COUNT", "30") or 30),

@@ -43,27 +43,30 @@ bash scripts/build_zip.sh
 
 - ランタイム: Python 3.13（本リポジトリは 3.11–3.13 で動作）
 - メモリ: 256MB 以上推奨、タイムアウト: 15秒程度
-- 環境変数（例）:
-  - `BACKLOG_SPACE`: `yourspace`
-  - `BACKLOG_BASE_URL`: `https://yourspace.backlog.com`（`.jp`等は適宜）
-  - `BOT_USER_ID`: `123456`（BotユーザーのID）
-  - `WEBHOOK_SHARED_SECRET`: Webhook共有シークレット
-  - `BACKLOG_BOT_SECRET_NAME`: Secrets Manager名（もしくは `BACKLOG_API_KEY` を直接envに設定）
-  - `IDEMPOTENCY_BUCKET`: S3バケット名（重複実行防止用）
-  - `RECENT_COMMENT_COUNT`: 30
-  - `CONTEXT_URL_MAX_BYTES`: 100000
-  - `CONTEXT_TOTAL_MAX_BYTES`: 200000
-  - `CONTEXT_ALLOWED_HOSTS`: `example.com,raw.githubusercontent.com` 等
-  - `LLM_PROVIDER`: `bedrock`
-  - `LLM_MODEL`: `anthropic.claude-3-haiku-20240307-v1:0`（用途に応じて変更）
-  - `LLM_TIMEOUT_SECONDS`: 10
-  - `LLM_MAX_RETRIES`: 2
-  - `REQUIRE_MENTION`: `true|false`（既定: `true`。`false`でメンション不要モード）
-  - `ALLOWED_TRIGGER_USER_IDS`: メンション不要時の許可ユーザーID（CSV、例: `12345,67890`）
+- 環境変数（必須/条件付き/任意）
+
+  必須
+  - `WEBHOOK_SHARED_SECRET`（必須）: Function URL の `?token=` と照合する共有シークレット。
+  - `BACKLOG_BASE_URL` または `BACKLOG_SPACE`（必須）: どちらか一方。例: `https://yourspace.backlog.com`。
+  - `BACKLOG_API_KEY`（必須）: Backlog APIキー。
+
+  条件付き必須
+  - `BOT_USER_ID`（メンション必須モードで必須）: Bot（または試験的にあなた自身）の Backlog ユーザーID。
+
+  任意（推奨・運用に応じて）
+  - `IDEMPOTENCY_BUCKET`: S3バケット名。設定すると comment.id 単位で重複実行を防止（冪等化）。
+  - `RECENT_COMMENT_COUNT`: 取得する直近コメント数。既定 30。
+  - `CONTEXT_URL_MAX_BYTES` / `CONTEXT_TOTAL_MAX_BYTES`: context から取り込むテキスト量の上限（既定 100000 / 200000）。
+  - `CONTEXT_ALLOWED_HOSTS`: 将来拡張用の許可ドメイン。現状は Backlog のみ取り込みのため未設定で可。
+  - `LLM_PROVIDER`: 既定 `bedrock`。
+  - `LLM_MODEL`: 既定 `anthropic.claude-3-haiku-20240307-v1:0`（用途に応じて変更）。
+  - `LLM_TIMEOUT_SECONDS`: 既定 10。
+  - `LLM_MAX_RETRIES`: 既定 2。
+  - `REQUIRE_MENTION`: `true|false`（既定 `true`）。`false` でメンション不要の試験運用モード。
+  - `ALLOWED_TRIGGER_USER_IDS`: メンション不要モード時の許可ユーザーID（CSV、例: `12345,67890`）。
 
 - 権限（IAM）:
-  - `secretsmanager:GetSecretValue`（`BACKLOG_BOT_SECRET_NAME` 用）
-  - `s3:HeadObject`, `s3:PutObject`（`IDEMPOTENCY_BUCKET` 用）
+  - `s3:HeadObject`, `s3:PutObject`（`IDEMPOTENCY_BUCKET` を使う場合）
   - `bedrock:InvokeModel`（対象モデル）
 
 3) エンドポイント（Function URL）
