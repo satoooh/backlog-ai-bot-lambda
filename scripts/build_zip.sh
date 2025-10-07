@@ -9,7 +9,6 @@ rm -f "$ZIP"
 
 cd "$ROOT_DIR"
 
-# Package only source (no external deps). Lambda provides boto3.
-zip -r9 "$ZIP" src >/dev/null
+# Package only the Python package at archive root (no external deps). Lambda provides boto3.
+(cd src && zip -r9 "$ZIP" backlog_bot >/dev/null)
 echo "Built: $ZIP"
-
